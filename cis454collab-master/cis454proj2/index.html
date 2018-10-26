@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Shapes</title>
+		<h1>Shapes</h1>
+
+		<script src="js/three.js"></script>
+		<script src="js/driver.js"></script>
+		<script src="js/OrbitControls.js"></script>
+	</head>
+	<body onload=init()>
+		Left click for rotation, right click for movement, scroll to pan.
+		<input id="reset" type="button" value="Reset" onclick="reset();" />
+		<input name="choose" type="radio" value="0" checked="checked" onclick="typecamera(0);" >
+		<label for="0">Perspective</label>
+		<input name="choose" type="radio" value="1" onclick="typecamera(1);" >
+		<label for="1">Orthographic</label>
+	</body>
+	
+</html>
