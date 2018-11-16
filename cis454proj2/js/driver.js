@@ -9,36 +9,55 @@ function init(){
 	////////////////
 	//SPHERE DATA//
 	//////////////
-	sphere = new THREE.Mesh(
-		new THREE.SphereGeometry(5, 32, 32),		//size of object
-		new THREE.MeshPhongMaterial({color:0x3172af, wireframe:false})	//color of object
-	);
-	sphere.position.y += 5;		//location in space coords
-	sphere.position.x += -15;
-	sphere.position.z += 0;
-	sphere.receiveShadow = true;
-	sphere.castShadow = true;
-	scene.add(sphere);
+	var texture1 = new THREE.TextureLoader().load( "textures/balldimpled.png" );
+
+	var material = new THREE.MeshBasicMaterial( { map: texture1 } );
+	var geometry = new THREE.SphereGeometry(15,15,15);
+	var sphere1 = new THREE.Mesh( geometry, material );
+	sphere1.receiveShadow = true;
+	sphere1.castShadow = true;
+	sphere1.position.y += 15;
+	sphere1.position.x += 0;
+	scene.add(sphere1);
 	
+	var texture1 = new THREE.TextureLoader().load( "textures/balldimpled.png" );
+	var material = new THREE.MeshBasicMaterial( { map: texture1 } );
+	var geometry = new THREE.SphereGeometry(15,15,15);
+	var sphere2 = new THREE.Mesh( geometry, material );
+	sphere2.receiveShadow = true;
+	sphere2.castShadow = true;
+	sphere2.position.y += 15;
+	sphere2.position.x += -35;
+	scene.add(sphere2);
+	
+	var texture1 = new THREE.TextureLoader().load( "textures/balldimpled.png" );
+	var material = new THREE.MeshBasicMaterial( { map: texture1 } );
+	var geometry = new THREE.SphereGeometry(15,15,15);
+	var sphere3 = new THREE.Mesh( geometry, material );
+	sphere3.receiveShadow = true;
+	sphere3.castShadow = true;
+	sphere3.position.y += 15;
+	sphere3.position.x += 35;
+	scene.add(sphere3);
 	////////////////
 	//CUBE DATA///
 	//////////////
-	cube = new THREE.Mesh(
-		new THREE.BoxGeometry(5, 5, 5),
-		new THREE.MeshPhongMaterial({color:0x019e16, wireframe:false})
-	);
-	cube.position.y += 5;
-	cube.position.x += 0;
-	cube.position.z += 20;
-	cube.receiveShadow = true;
-	cube.castShadow = true;
-	scene.add(cube);
+	var texture2 = new THREE.TextureLoader().load( "textures/balldimpled.png" );
+	var material = new THREE.MeshBasicMaterial( { map: texture2 } );
+	var geometry = new THREE.BoxGeometry(10,400,10);
+	var cube1 = new THREE.Mesh( geometry, material );
+	cube1.position.y += 200;
+	cube1.position.x += 0;
+	cube1.position.z += 400;
+	cube1.receiveShadow = true;
+	cube1.castShadow = true;
+	scene.add(cube1);
 	
 	////////////////
 	//FLOOR DATA///
 	//////////////	
 	floor = new THREE.Mesh(
-		new THREE.PlaneGeometry(100,100, 10,10),
+		new THREE.PlaneGeometry(1000,1000, 100,100),
 		// use MeshPhongMaterial to react to lighting
 		new THREE.MeshPhongMaterial({color:0x845c2a, wireframe:false})
 
@@ -56,15 +75,15 @@ function init(){
 	scene.add(ambientLight);
 	
 	directionalLight = new THREE.DirectionalLight(0xffffff, 0.8, 18);	//do not change color
-	directionalLight.position.set(10,10,10);	//can vary, 50x50x50 too far, 25x25x25 not good, 10x10x10 seems good
+	directionalLight.position.set(500,500,200);	//can vary, 50x50x50 too far, 25x25x25 not good, 10x10x10 seems good
 	directionalLight.castShadow = true;
 	directionalLight.shadow.camera.near = 0.1;
-	directionalLight.shadow.camera.far = 50;
+	directionalLight.shadow.camera.far = 1000;
 	directionalLight.shadowCameraVisible = true;
-	directionalLight.shadowCameraRight     =  50;
-	directionalLight.shadowCameraLeft     = -50;
-	directionalLight.shadowCameraTop      =  50;
-	directionalLight.shadowCameraBottom   = -50;
+	directionalLight.shadowCameraRight     =  500;
+	directionalLight.shadowCameraLeft     = -500;
+	directionalLight.shadowCameraTop      =  500;
+	directionalLight.shadowCameraBottom   = -500;
 	
 		
 	scene.add(directionalLight);
@@ -78,11 +97,12 @@ function init(){
 	renderer.shadowMap.type = THREE.BasicShadowMap;
 	document.body.appendChild(renderer.domElement);
 	
+	
 	////////////////
 	//CAMERA DATA//
 	//////////////
-	camera.position.set(20, 30, -5);
-	camera.lookAt(new THREE.Vector3(0,15,0));
+	camera.position.set(0, 250, -50);
+	camera.lookAt(new THREE.Vector3(150, 300, 150));
 	scene.add(camera);
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	
@@ -91,13 +111,7 @@ function init(){
 
 function animate(){
 	requestAnimationFrame(animate);
-	
-	sphere.rotation.x += 0.01;
-	sphere.rotation.y += 0.02;
-	
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.02;
-	
+
 	renderer.render(scene, camera);
 }
 function reset(){	//reset camera view
