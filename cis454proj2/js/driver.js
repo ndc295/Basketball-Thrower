@@ -241,6 +241,7 @@ function init(){
 	//controls = new THREE.OrbitControls(camera, renderer.domElement);
 	
 	animate();
+	startTimer();
 }
 
 function animate(){
@@ -248,7 +249,50 @@ function animate(){
 
 	renderer.render(scene, camera);
 }
-function reset(){	//reset game
 
-	
+var clicked = false;
+var sec = 60;
+
+var scored=false;
+var playerScore=0;
+var highScore=playerScore;
+
+function startClock() {
+    if (clicked === false) {
+        clock = setInterval("stopWatch()", 1000);
+        clicked = true;
+		playerScore=0;
+		document.getElementById("pscore").innerHTML="Your Score: "+playerScore;
+    }
+    else if (clicked === true) {
+
+
+    }
 }
+
+function stopWatch() {
+    sec--;
+	if(sec>0){
+		if(scored==true){
+			playerScore++;
+			document.getElementById("pscore").innerHTML="Your Score: "+playerScore;
+			scored=false;
+		}
+	}
+	if(sec==0){
+		stopClock();
+	}
+    document.getElementById("timer").innerHTML ="Timer: "+ sec;
+}
+
+function stopClock() {
+    window.clearInterval(clock);
+    sec = 60;
+	if(playerScore>highScore){
+		highScore=playerScore;
+		document.getElementById("pscore").innerHTML="High Score: "+highScore;
+	}
+    document.getElementById("timer").innerHTML=0;
+    clicked = false;
+}
+
