@@ -3,6 +3,8 @@ var floor, ambientLight, directionalLight;
 var controls;
 var ball1,ball3,ball3,pole,backboard,hoop,sky1,sky2,fence1,fence2,brick;
 var texture,material,geometry;
+var targetList = [];
+
 function init(){
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(90, .75*window.innerWidth/window.innerHeight, 10, 1000);
@@ -11,7 +13,7 @@ function init(){
 	//BASKETBALL DATA//
 	//////////////
 	texture = new THREE.TextureLoader().load( "textures/balldimpled.png");
-	material = new THREE.MeshBasicMaterial( { map: texture } );
+	material = new THREE.MeshPhongMaterial( { map: texture } );
 	geometry = new THREE.SphereGeometry(15,15,15);
 	
 	ball1 = new THREE.Mesh( geometry, material );
@@ -77,25 +79,45 @@ function init(){
 	backboard.position.y += 390;
 	backboard.position.x += 0;
 	backboard.position.z += 395;
-	backboard.receiveShadow = true;
+	backboard.receiveShadow = false;
 	backboard.castShadow = true;
 	scene.add(backboard);
 	
 	////////////////
 	//HOOP DATA///
 	//////////////
-
-	geometry = new THREE.SphereGeometry(15,10,15);
+	geometry = new 	THREE.TorusGeometry( 18, 1,15,15 )
 	hoop = new THREE.Mesh( geometry );
-	hoop.material.color.setHex( 0xffffff  );
+	hoop.material.color.setHex( 0x303030  );
 
-	hoop.position.y += 380;
+	hoop.position.y += 370;
 	hoop.position.x += 0;
-	hoop.position.z += 390;
+	hoop.position.z += 375;
 	hoop.receiveShadow = true;
 	hoop.castShadow = true;
+	hoop.rotateX(THREE.Math.degToRad(90));
 	scene.add(hoop);
 	
+	////////////////
+	//HITBOX DATA///
+	//////////////
+	
+	///SCORING HITBOXES//////
+	geometry = new 	THREE.BoxGeometry( 15, 1,15 )
+	hitbox1 = new THREE.Mesh( geometry );
+	hitbox1.material.color.setHex( 0xffffff  );
+	hitbox1.position.y += 375;
+	hitbox1.position.x += 0;
+	hitbox1.position.z += 375;
+	scene.add(hitbox1);
+	
+	geometry = new 	THREE.BoxGeometry( 15, 1,15 )
+	hitbox2 = new THREE.Mesh( geometry );
+	hitbox2.material.color.setHex( 0xffffff  );
+	hitbox2.position.y += 365;
+	hitbox2.position.x += 0;
+	hitbox2.position.z += 375;
+	scene.add(hitbox2);
 	
 	////////////////
 	//FLOOR DATA///
@@ -106,12 +128,11 @@ function init(){
 		texture.repeat.set( 1, 1 );
 	});
 
-	var material = new THREE.MeshBasicMaterial( { map: texture } );
+	var material = new THREE.MeshPhongMaterial( { map: texture } );
 	var geometry = new THREE.BoxGeometry(1000,1000,1);
 	var floor = new THREE.Mesh( geometry, material );
 	floor.rotation.x -= Math.PI / 2;
 	floor.receiveShadow = true;
-	floor.castShadow = true;
 	scene.add(floor);
 	
 	////////////////
@@ -136,8 +157,9 @@ function init(){
 	brick.position.y += 500;
 	brick.position.x += 0;
 	brick.position.z += 500;
-	brick.receiveShadow = true;
-	brick.castShadow = true;
+	brick.receiveShadow = false;
+	brick.castShadow = false;
+
 	scene.add(brick);
 	
 	//Chain fence left
@@ -157,7 +179,7 @@ function init(){
 	fence1.position.y += 100;
 	fence1.position.x += 500;
 	fence1.position.z += 0;
-	fence1.receiveShadow = true;
+	fence1.receiveShadow = false;
 	fence1.castShadow = true;
 	fence1.rotateX(THREE.Math.degToRad(90));
 	scene.add(fence1);
@@ -167,7 +189,7 @@ function init(){
 	fence2.position.y += 100;
 	fence2.position.x += -500;
 	fence2.position.z += 0;
-	fence2.receiveShadow = true;
+	fence2.receiveShadow = false;
 	fence2.castShadow = true;
 	fence2.rotateX(THREE.Math.degToRad(90));
 	scene.add(fence2);
@@ -188,8 +210,8 @@ function init(){
 	sky1.position.y += 600;
 	sky1.position.x += 500;
 	sky1.position.z += 0;
-	sky1.receiveShadow = true;
-	sky1.castShadow = true;
+	sky1.receiveShadow=false;
+	sky1.castShadow = false;
 	sky1.rotateX(THREE.Math.degToRad(90));
 	scene.add(sky1);
 
@@ -198,22 +220,23 @@ function init(){
 	sky2.position.y += 600;
 	sky2.position.x += -500;
 	sky2.position.z += 0;
-	sky2.receiveShadow = true;
-	sky2.castShadow = true;
+	sky2.receiveShadow=false;
+	sky2.castShadow = false;
+
 	sky2.rotateX(THREE.Math.degToRad(90));
 	scene.add(sky2);
 	
 	////////////////
 	//LIGHTS DATA//
 	//////////////
-	ambientLight = new THREE.AmbientLight(0xffffff, 0.5);	//do not change color .2-.4 is best
+	ambientLight = new THREE.AmbientLight(0xffffff, 0.3);	//do not change color .2-.4 is best
 	scene.add(ambientLight);
 	
 	directionalLight = new THREE.DirectionalLight(0xffffff, 0.8, 18);	//do not change color
-	directionalLight.position.set(500,500,500);	//can vary, 50x50x50 too far, 25x25x25 not good, 10x10x10 seems good
+	directionalLight.position.set(490,490,0);	//can vary,
 	directionalLight.castShadow = true;
 	directionalLight.shadow.camera.near = 0.1;
-	directionalLight.shadow.camera.far = 1000;
+	directionalLight.shadow.camera.far = 2000;
 	directionalLight.shadowCameraVisible = true;
 	directionalLight.shadowCameraRight     =  500;
 	directionalLight.shadowCameraLeft     = -500;
@@ -239,15 +262,19 @@ function init(){
 	camera.lookAt(position);
 	scene.add(camera);
 	//controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	
 	
 	animate();
-	startTimer();
 }
 
-function animate(){
-	requestAnimationFrame(animate);
+function animate() {
+  requestAnimationFrame( animate );
+  render();
+}
 
-	renderer.render(scene, camera);
+function render() {
+  renderer.render( scene, camera );
 }
 
 var clicked = false;
@@ -259,19 +286,37 @@ var highScore=playerScore;
 
 function startClock() {
     if (clicked === false) {
-        clock = setInterval("stopWatch()", 1000);
-        clicked = true;
+		clicked = true;
 		playerScore=0;
+		dayTime=0;
+		nightTime=0;
+		sec=60;
+		//ambientLight.intensity(.9);
+		directionalLight.position.set(490,490,0);
 		document.getElementById("pscore").innerHTML="Your Score: "+playerScore;
+		
+        clock = setInterval("stopWatch()", 1000);
+       
     }
     else if (clicked === true) {
 
-
     }
 }
-
+var dayTime=0;
+var nightTime=0;
 function stopWatch() {
     sec--;
+	
+	if(sec>30){ //start at .3, go to .5 by 30 seconds, then go back down to .2
+		dayTime++;
+		//ambientLight.intensity(	.3+dayTime*.0067);
+		directionalLight.position.set((490-16.33*dayTime),(490+7*dayTime),(0+8.3*dayTime));
+	}else{
+		nightTime++;
+		//ambientLight.intensity(.5-nightTime*.01);
+		directionalLight.position.set((0-16.33*nightTime),(700-7*nightTime),(249-8.3*nightTime));
+
+	}
 	if(sec>0){
 		if(scored==true){
 			playerScore++;
@@ -279,6 +324,9 @@ function stopWatch() {
 			scored=false;
 		}
 	}
+	animate();
+
+	
 	if(sec==0){
 		stopClock();
 	}
@@ -292,7 +340,39 @@ function stopClock() {
 		highScore=playerScore;
 		document.getElementById("pscore").innerHTML="High Score: "+highScore;
 	}
+
     document.getElementById("timer").innerHTML=0;
     clicked = false;
 }
 
+
+function onDocumentMouseDown( event ) 
+{
+	// the following line would stop any other event handler from firing
+	// (such as the mouse's TrackballControls)
+	// event.preventDefault();
+	
+	console.log("Click.");
+	
+	// update the mouse variable
+	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	
+	// find intersections
+	// create a Ray with origin at the mouse position
+	//   and direction into the scene (camera direction)
+	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+	projector.unprojectVector( vector, camera );
+	var ray = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+	// create an array containing all objects in the scene with which the ray intersects
+	var intersects = ray.intersectObjects( targetList );
+	
+	// if there is one (or more) intersections
+	if ( intersects.length > 0 )
+	{
+		console.log("Hit @ " + toString( intersects[0].point ) );
+		// change the color of the closest face.
+		intersects[ 0 ].face.color.setRGB( 0.8 * Math.random() + 0.2, 0, 0 ); 
+		intersects[ 0 ].object.geometry.colorsNeedUpdate = true;
+	}
+}
