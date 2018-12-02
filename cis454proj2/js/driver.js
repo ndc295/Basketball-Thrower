@@ -1,7 +1,6 @@
 var scene, camera, renderer,loader;
 var floor, ambientLight, directionalLight;
-var controls;
-var hand,fingers,ball1,ball3,ball3,pole,backboard,hoop,sky1,sky2,fence1,fence2,brick;
+var hand,fingers,ball1,ball3,ball3,pole,backboard,hoop,sky1,sky2,fence1,fence2,brick,startt,resett,startb,resetb;
 var texture,material,geometry;
 var clicked = false;
 var sec = 60;
@@ -10,16 +9,28 @@ var playerScore=0;
 var highScore=playerScore;
 var dayTime=0;
 var nightTime=0;
-var mouse = {x: 0, y: 0};
+var hasFallen=[];
+var isGrabbed=[];
+			var mouse = new THREE.Vector2(), INTERSECTED;
 var message1= "Timer: 60";
 var message2= "Score: 0";
 var message3= "High Score: 0";
-var textGeo1,textGeo2,textGeo3;
+var tm1="Basketball Thrower Game";
+var tm2="Click to throw the basketballs to score points before the time runs out!";
+var textGeo1,textGeo2,textGeo3,title1,title2;
+var raycaster,intersects,intersection;
+var objects = [];
+var sMenu = [];
+var rMenu = [];
+var clicked1=false;
+var pos,obj;
+var lastHighest=[];
 function init(){
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 10, 1000);
 	loader = new THREE.TextureLoader();
-	
+	raycaster = new THREE.Raycaster();
+ 
 	
 	//create scene and populate it
 	createScene();
@@ -37,11 +48,49 @@ function init(){
 	setTimer();
 	setScore();
 	setHighScore();
-
-
+	setTitle1();
+	setTitle2();
 	window.addEventListener( 'resize', onWindowResize, false );
+	document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 	animate();
+}
+function setTitle1(){
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry(tm1, {
+			font: font,
+			size: 50,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0x000000});
+		title1 = new THREE.Mesh(text, textMat);
+		title1.position.x = 400;
+		title1.position.z = 499;
+		title1.position.y = 600;
+		title1.rotateY(THREE.Math.degToRad(180));
+
+		scene.add(title1);
+	});
+}
+function setTitle2(){
+
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry(tm2, {
+			font: font,
+			size: 14,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0x000000});
+		title2 = new THREE.Mesh(text, textMat);
+		title2.position.x = 275;
+		title2.position.z = 499;
+		title2.position.y = 560;
+		title2.rotateY(THREE.Math.degToRad(180));
+
+		scene.add(title2);
+	});
 }
 function setTimer( ){
 	var loader = new THREE.FontLoader();
@@ -94,6 +143,42 @@ function setHighScore( ){
 		textGeo3.rotateY(THREE.Math.degToRad(180));
 
 		scene.add(textGeo3);
+	});
+}
+function setStart(){
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry("Start", {
+			font: font,
+			size: 30,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+		startt = new THREE.Mesh(text, textMat);
+		startt.position.x = -150;
+		startt.position.z = 498;
+		startt.position.y = 835;
+		startt.rotateY(THREE.Math.degToRad(180));
+
+		scene.add(startt);
+	});
+}
+function setReset(){
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry("Reset", {
+			font: font,
+			size: 30,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+		resett = new THREE.Mesh(text, textMat);
+		resett.position.x = -350;
+		resett.position.z = 498;
+		resett.position.y = 835;
+		resett.rotateY(THREE.Math.degToRad(180));
+
+		scene.add(resett);
 	});
 }
 function createScene(){
@@ -475,10 +560,41 @@ function createScene(){
 	sky2.position.z += 0;
 	sky2.receiveShadow=false;
 	sky2.castShadow = false;
-
 	sky2.rotateX(THREE.Math.degToRad(90));
 	scene.add(sky2);
-	
+	/////////////
+	///Buttons///
+	/////////////
+	geometry = new THREE.BoxGeometry(160,80,1);
+	startb = new THREE.Mesh( geometry  );
+	startb.material.color.setHex( 0x303030  );
+
+	startb.position.y += 850;
+	startb.position.x += -200;
+	startb.position.z += 498;
+	startb.receiveShadow = false;
+	startb.castShadow = false;
+	scene.add(startb);
+	setStart();
+
+	resetb = new THREE.Mesh( geometry  );
+	resetb.material.color.setHex( 0x303030  );
+	setReset();
+	resetb.position.y += 850;
+	resetb.position.x += -400;
+	resetb.position.z += 498;
+	resetb.receiveShadow = false;
+	resetb.castShadow = false;
+	scene.add(resetb);
+	objects.push( ball1,ball2,ball3,ball4,ball5 );
+  	for(var i=0;i<objects.length;i++){
+		hasFallen[i]=true;
+		isGrabbed[i]=false;
+		lastHighest[i]=objects[i].position.y;
+	}
+	sMenu.push(startb);
+	rMenu.push(resetb);
+
 }
 function addLights(){
 	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);	//do not change color .2-.4 is best
@@ -508,6 +624,7 @@ function setCamera(){
 function setCanvas(){
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.BasicShadowMap;
 	document.body.appendChild(renderer.domElement);
@@ -515,14 +632,33 @@ function setCanvas(){
 }
 function animate() {
   requestAnimationFrame( animate );
+  
+  	for(var i=0;i<objects.length;i++){	//determine the bounce
+		if(objects[i].position.y>15){
+			if(hasFallen[i]<objects[i].position.y){
+				lastHighest[i]=objects[i].position.y;
+ 			}
+		}
+	}
+  	for(var i=0;i<objects.length;i++){	//determine whether or not to bounce
+		if(objects[i].position.y>15){
+			objects[i].position.y-=5;
+		}else if(objects[i].position.y<=15){
+			objects[i].position.y+=5;
+  		}
+	}
+	
+
   render();
 }
 function render() {
   renderer.render( scene, camera );
+
 }
 function startClock() {
  	document.body.style.cursor = "none";
-
+	scene.remove(title1);
+	scene.remove(title2);
     if (clicked == false) {
 		clicked = true;
 		playerScore=0;
@@ -596,35 +732,6 @@ function stopClock() {
 	setTimer();
     clicked = false;
 }
-function onDocumentMouseDown( event ) {
-	// the following line would stop any other event handler from firing
-	// (such as the mouse's TrackballControls)
-	// event.preventDefault();
-	
-	console.log("Click.");
-	
-	// update the mouse variable
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-	
-	// find intersections
-	// create a Ray with origin at the mouse position
-	//   and direction into the scene (camera direction)
-	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
-	projector.unprojectVector( vector, camera );
-	var ray = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-	// create an array containing all objects in the scene with which the ray intersects
-	var intersects = ray.intersectObjects( targetList );
-	
-	// if there is one (or more) intersections
-	if ( intersects.length > 0 )
-	{
-		console.log("Hit @ " + toString( intersects[0].point ) );
-		// change the color of the closest face.
-		intersects[ 0 ].face.color.setRGB( 0.8 * Math.random() + 0.2, 0, 0 ); 
-		intersects[ 0 ].object.geometry.colorsNeedUpdate = true;
-	}
-}
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -636,10 +743,43 @@ document.onmousemove = function(event){
 	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
  // Make the sphere follow the mouse
-	var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+	var vector = new THREE.Vector3(mouse.x, mouse.y, .5);
 	vector.unproject( camera );
 	var dir = vector.sub( camera.position ).normalize();
 	var distance = - camera.position.z / dir.z;
-	var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+	pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
 	hand.position.copy(pos);
+	hand.position.z-=25;
+	hand.position.y-=20;
+	
+	if(clicked1){
+ 		obj.position.copy(pos);
+
+	}
+
+}
+
+function onDocumentMouseDown( e ) {	//make the clicked1 var switch ON if it clicks a relevant object
+	e.preventDefault();
+ 	  
+	if(clicked1){
+		clicked1=false;
+	}else{
+		raycaster.setFromCamera( mouse, camera );  
+		intersects = raycaster.intersectObjects( objects );
+		if(intersects.length>0){
+			clicked1=true;
+ 			obj=intersects[ 0 ].object;
+			obj.position.copy(pos);
+		}
+
+	}
+	intersects = raycaster.intersectObjects( sMenu );
+	if(intersects.length>0){
+		startClock();
+	}
+	intersects = raycaster.intersectObjects( rMenu );
+	if(intersects.length>0){
+		stopClock();
+	}
 }
