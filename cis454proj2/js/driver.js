@@ -1,19 +1,272 @@
 var scene, camera, renderer,loader;
 var floor, ambientLight, directionalLight;
 var controls;
-var ball1,ball3,ball3,pole,backboard,hoop,sky1,sky2,fence1,fence2,brick;
+var hand,fingers,ball1,ball3,ball3,pole,backboard,hoop,sky1,sky2,fence1,fence2,brick;
 var texture,material,geometry;
-var targetList = [];
-
+var clicked = false;
+var sec = 60;
+var scored=false;
+var playerScore=0;
+var highScore=playerScore;
+var dayTime=0;
+var nightTime=0;
+var mouse = {x: 0, y: 0};
+var message1= "Timer: 60";
+var message2= "Score: 0";
+var message3= "High Score: 0";
+var textGeo1,textGeo2,textGeo3;
 function init(){
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera(90, .75*window.innerWidth/window.innerHeight, 10, 1000);
+	camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 10, 1000);
 	loader = new THREE.TextureLoader();
+	
+	
+	//create scene and populate it
+	createScene();
+	
+	//create lights 
+	addLights();
+	
+	//create renderer
+	setCanvas();
+	
+	//create camera
+	setCamera();
+
+	//set in game text
+	setTimer();
+	setScore();
+	setHighScore();
+
+
+	window.addEventListener( 'resize', onWindowResize, false );
+
+	animate();
+}
+function setTimer( ){
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry(message1, {
+			font: font,
+			size: 30,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0x000000});
+		textGeo1 = new THREE.Mesh(text, textMat);
+		textGeo1.position.x = 450;
+		textGeo1.position.z = 480;
+		textGeo1.position.y = 850;
+		textGeo1.rotateY(THREE.Math.degToRad(180));
+
+		scene.add(textGeo1);
+	});
+}
+function setScore( ){ 
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry(message2, {
+			font: font,
+			size: 30,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0x000000});
+		textGeo2 = new THREE.Mesh(text, textMat);
+		textGeo2.position.x = 450;
+		textGeo2.position.z = 480;
+		textGeo2.position.y = 800;
+		textGeo2.rotateY(THREE.Math.degToRad(180));
+		scene.add(textGeo2);
+	});
+ }
+function setHighScore( ){ 
+	var loader = new THREE.FontLoader();
+	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
+		var text = new THREE.TextGeometry(message3, {
+			font: font,
+			size: 30,
+			height: 3
+		});
+		var textMat = new THREE.MeshBasicMaterial({color: 0x000000});
+		textGeo3 = new THREE.Mesh(text, textMat);
+		textGeo3.position.x = 450;
+		textGeo3.position.z = 480;
+		textGeo3.position.y = 750;
+		textGeo3.rotateY(THREE.Math.degToRad(180));
+
+		scene.add(textGeo3);
+	});
+}
+function createScene(){
+	/////////////
+	//HAND DATA//
+	////////////
+	hand = new THREE.Group();
+	fingers = new THREE.Group();
+	var indexFinger = new THREE.Group();
+	var middleFinger = new THREE.Group();
+	var ringFinger = new THREE.Group();
+	var pinkyFinger = new THREE.Group();
+	var thumbFinger = new THREE.Group();
+	
+	
+	geometry = new THREE.BoxGeometry(11,16,2);
+
+	//var modifier = new THREE.SubdivisionModifier( 3 );
+	//smooth=modifier.modify( geometry );
+	palm = new THREE.Mesh( geometry );
+	palm.receiveShadow = true;
+	palm.castShadow = true;
+	palm.position.y += 15;
+	palm.position.x +=5.5;
+	palm.material.color.setHex( 0xeac086 );
+
+	hand.add(palm);
+	//Palm is at (6,15,0)
+				//x spans 0-18
+				//y spans 1-23
+	geometry = new THREE.CylinderGeometry(0.975,0.975,3.5,64);
+	
+	indexfinger1 = new THREE.Mesh( geometry );
+	indexfinger1.receiveShadow = true;
+	indexfinger1.castShadow = true;
+	indexfinger1.position.y += 24.75;
+	indexfinger1.position.x += 1;
+	indexFinger.add(indexfinger1);
+	indexfinger1.material.color.setHex( 0xeac086 );
+	
+	indexfinger2 = new THREE.Mesh( geometry );
+	indexfinger2.receiveShadow = true;
+	indexfinger2.castShadow = true;
+	indexfinger2.position.y += 28.25;
+	indexfinger2.position.x += 1;
+	indexFinger.add(indexfinger2);
+	indexfinger2.material.color.setHex( 0xeac086 );
+	
+	indexfinger3 = new THREE.Mesh( geometry );
+	indexfinger3.receiveShadow = true;
+	indexfinger3.castShadow = true;
+	indexfinger3.position.y += 31.75;
+	indexfinger3.position.x += 1;
+	indexFinger.add(indexfinger3);
+	indexfinger3.material.color.setHex( 0xeac086 );
+	
+	geometry = new THREE.CylinderGeometry(1,1,4,64);
+
+	middlefinger1 = new THREE.Mesh( geometry );
+	middlefinger1.receiveShadow = true;
+	middlefinger1.castShadow = true;
+	middlefinger1.position.y += 25;
+	middlefinger1.position.x += 4;
+	middleFinger.add(middlefinger1);
+	middlefinger1.material.color.setHex( 0xeac086 );
+
+	middlefinger2 = new THREE.Mesh( geometry );
+	middlefinger2.receiveShadow = true;
+	middlefinger2.castShadow = true;
+	middlefinger2.position.y += 29;
+	middlefinger2.position.x += 4;
+	middleFinger.add(middlefinger2);
+	middlefinger2.material.color.setHex( 0xeac086 );
+
+	middlefinger3 = new THREE.Mesh( geometry );
+	middlefinger3.receiveShadow = true;
+	middlefinger3.castShadow = true;
+	middlefinger3.position.y += 33;
+	middlefinger3.position.x += 4;
+	middleFinger.add(middlefinger3);
+	middlefinger3.material.color.setHex( 0xeac086 );
+
+	geometry = new THREE.CylinderGeometry(0.975,0.975,3.5,64);
+
+	
+	ringfinger1 = new THREE.Mesh( geometry );
+	ringfinger1.receiveShadow = true;
+	ringfinger1.castShadow = true;
+	ringfinger1.position.y += 24.75;
+	ringfinger1.position.x += 7;
+	ringFinger.add(ringfinger1);
+	ringfinger1.material.color.setHex( 0xeac086 );
+
+	ringfinger2 = new THREE.Mesh( geometry );
+	ringfinger2.receiveShadow = true;
+	ringfinger2.castShadow = true;
+	ringfinger2.position.y += 28.25;
+	ringfinger2.position.x += 7;
+	ringFinger.add(ringfinger2);
+	ringfinger2.material.color.setHex( 0xeac086 );
+
+	ringfinger3 = new THREE.Mesh( geometry );
+	ringfinger3.receiveShadow = true;
+	ringfinger3.castShadow = true;
+	ringfinger3.position.y += 31.75;
+	ringfinger3.position.x += 7;
+	ringFinger.add(ringfinger3);
+	ringfinger3.material.color.setHex( 0xeac086 );
+
+	geometry = new THREE.CylinderGeometry(0.95,0.95,3.4,64);
+	
+	pinkyfinger1 = new THREE.Mesh( geometry );
+	pinkyfinger1.receiveShadow = true;
+	pinkyfinger1.castShadow = true;
+	pinkyfinger1.position.y += 24.7;
+	pinkyfinger1.position.x += 10;
+	pinkyFinger.add(pinkyfinger1);
+	pinkyfinger1.material.color.setHex( 0xeac086 );
+
+	pinkyfinger2 = new THREE.Mesh( geometry );
+	pinkyfinger2.receiveShadow = true;
+	pinkyfinger2.castShadow = true;
+	pinkyfinger2.position.y += 28.1;
+	pinkyfinger2.position.x += 10;
+	pinkyFinger.add(pinkyfinger2);
+	pinkyfinger2.material.color.setHex( 0xeac086 );
+
+	pinkyfinger3 = new THREE.Mesh( geometry );
+	pinkyfinger3.receiveShadow = true;
+	pinkyfinger3.castShadow = true;
+	pinkyfinger3.position.y += 31.5;
+	pinkyfinger3.position.x += 10;
+	pinkyFinger.add(pinkyfinger3);
+	pinkyfinger3.material.color.setHex( 0xeac086 );
+
+	geometry = new THREE.CylinderGeometry(1.05,1.05,4.2,64);
+	
+	thumbfinger1 = new THREE.Mesh( geometry );
+	thumbfinger1.receiveShadow = true;
+	thumbfinger1.castShadow = true;
+	thumbfinger1.position.y += 13;
+	thumbfinger1.position.x += -1.5;
+	thumbfinger1.rotateZ(THREE.Math.degToRad(45));
+	thumbFinger.add(thumbfinger1);
+	thumbfinger1.material.color.setHex( 0xeac086 );
+
+	thumbfinger2 = new THREE.Mesh( geometry );
+	thumbfinger2.receiveShadow = true;
+	thumbfinger2.castShadow = true;
+	thumbfinger2.position.y += 16;
+	thumbfinger2.position.x += -4.55;
+	thumbfinger2.rotateZ(THREE.Math.degToRad(45));
+	thumbFinger.add(thumbfinger2);
+	thumbfinger2.material.color.setHex( 0xeac086 );
+
+	
+	fingers.add(indexFinger);
+	fingers.add(middleFinger);
+	fingers.add(ringFinger);
+	fingers.add(pinkyFinger);
+	fingers.add(thumbFinger);
+
+	hand.add(fingers);
+
+	hand.rotateX(THREE.Math.degToRad(45));
+	scene.add(hand);
+	hand.position.x += 4;
+	
 	////////////////
 	//BASKETBALL DATA//
 	//////////////
 	texture = new THREE.TextureLoader().load( "textures/balldimpled.png");
-	material = new THREE.MeshPhongMaterial( { map: texture } );
+	material = new THREE.MeshBasicMaterial( { map: texture } );
 	geometry = new THREE.SphereGeometry(15,15,15);
 	
 	ball1 = new THREE.Mesh( geometry, material );
@@ -157,7 +410,7 @@ function init(){
 	brick.position.y += 500;
 	brick.position.x += 0;
 	brick.position.z += 500;
-	brick.receiveShadow = false;
+	brick.receiveShadow = true;
 	brick.castShadow = false;
 
 	scene.add(brick);
@@ -179,7 +432,7 @@ function init(){
 	fence1.position.y += 100;
 	fence1.position.x += 500;
 	fence1.position.z += 0;
-	fence1.receiveShadow = false;
+	fence1.receiveShadow = true;
 	fence1.castShadow = true;
 	fence1.rotateX(THREE.Math.degToRad(90));
 	scene.add(fence1);
@@ -189,7 +442,7 @@ function init(){
 	fence2.position.y += 100;
 	fence2.position.x += -500;
 	fence2.position.z += 0;
-	fence2.receiveShadow = false;
+	fence2.receiveShadow = true;
 	fence2.castShadow = true;
 	fence2.rotateX(THREE.Math.degToRad(90));
 	scene.add(fence2);
@@ -226,10 +479,9 @@ function init(){
 	sky2.rotateX(THREE.Math.degToRad(90));
 	scene.add(sky2);
 	
-	////////////////
-	//LIGHTS DATA//
-	//////////////
-	ambientLight = new THREE.AmbientLight(0xffffff, 0.3);	//do not change color .2-.4 is best
+}
+function addLights(){
+	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);	//do not change color .2-.4 is best
 	scene.add(ambientLight);
 	
 	directionalLight = new THREE.DirectionalLight(0xffffff, 0.8, 18);	//do not change color
@@ -243,111 +495,108 @@ function init(){
 	directionalLight.shadowCameraTop      =  500;
 	directionalLight.shadowCameraBottom   = -500;
 	scene.add(directionalLight);
-	
-	////////////////
-	//CANVAS DATA//
-	//////////////
-	renderer = new THREE.WebGLRenderer();
-	renderer.setSize( window.innerWidth*3/4, window.innerHeight*3/4 );
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.BasicShadowMap;
-	document.body.appendChild(renderer.domElement);
-	
-	
-	////////////////
-	//CAMERA DATA//
-	//////////////
+}
+function setCamera(){
 	camera.position.set(0, 175, -220);
+	//camera.position.set(15, 15, -5);
 	var position = new THREE.Vector3(0,200,490);
 	camera.lookAt(position);
 	scene.add(camera);
 	//controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-	
-	
-	animate();
 }
-
+function setCanvas(){
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.BasicShadowMap;
+	document.body.appendChild(renderer.domElement);
+	
+}
 function animate() {
   requestAnimationFrame( animate );
   render();
 }
-
 function render() {
   renderer.render( scene, camera );
 }
-
-var clicked = false;
-var sec = 60;
-
-var scored=false;
-var playerScore=0;
-var highScore=playerScore;
-
 function startClock() {
-    if (clicked === false) {
+ 	document.body.style.cursor = "none";
+
+    if (clicked == false) {
 		clicked = true;
 		playerScore=0;
 		dayTime=0;
 		nightTime=0;
 		sec=60;
-		//ambientLight.intensity(.9);
 		directionalLight.position.set(490,490,0);
-		document.getElementById("pscore").innerHTML="Your Score: "+playerScore;
-		
+		ambientLight.intensity=.2;
+		message1="Timer: "+sec;
+		scene.remove(textGeo1);
+		setTimer();
+		message2="Score: "+playerScore;
+		scene.remove(textGeo2);
+		setScore();
+		message3="High Score: "+highScore;
+		scene.remove(textGeo3);
+		setHighScore();
         clock = setInterval("stopWatch()", 1000);
-       
     }
-    else if (clicked === true) {
+    else if (clicked == true) {
 
     }
 }
-var dayTime=0;
-var nightTime=0;
 function stopWatch() {
     sec--;
 	
 	if(sec>30){ //start at .3, go to .5 by 30 seconds, then go back down to .2
 		dayTime++;
-		//ambientLight.intensity(	.3+dayTime*.0067);
+		ambientLight.intensity=(.3+dayTime*.0067);
 		directionalLight.position.set((490-16.33*dayTime),(490+7*dayTime),(0+8.3*dayTime));
 	}else{
 		nightTime++;
-		//ambientLight.intensity(.5-nightTime*.01);
+		ambientLight.intensity=(.5-nightTime*.021);
+		directionalLight.intensity=.8-nightTime*.02;
 		directionalLight.position.set((0-16.33*nightTime),(700-7*nightTime),(249-8.3*nightTime));
 
 	}
 	if(sec>0){
 		if(scored==true){
 			playerScore++;
-			document.getElementById("pscore").innerHTML="Your Score: "+playerScore;
+			message2="Score: "+playerScore;
+			scene.remove(textGeo2);
+			setScore();
 			scored=false;
 		}
-	}
-	animate();
-
-	
+	}	
 	if(sec==0){
+		ambientLight.intensity=0;
+		directionalLight.intensity= .3;
+		dayTime=0;
+		nightTime=0;
 		stopClock();
 	}
-    document.getElementById("timer").innerHTML ="Timer: "+ sec;
+    message1="Timer: "+ sec;
+	scene.remove(textGeo1);
+	setTimer();
 }
-
 function stopClock() {
+	document.body.style.cursor = "default";
     window.clearInterval(clock);
     sec = 60;
 	if(playerScore>highScore){
 		highScore=playerScore;
-		document.getElementById("pscore").innerHTML="High Score: "+highScore;
+		message3="High Score: "+highScore;
+		scene.remove(textGeo3);
+		setHighScore();
 	}
 
-    document.getElementById("timer").innerHTML=0;
+	scene.remove(textGeo1);
+	message1="Timer: "+sec
+	setTimer();
     clicked = false;
 }
-
-
-function onDocumentMouseDown( event ) 
-{
+function onDocumentMouseDown( event ) {
 	// the following line would stop any other event handler from firing
 	// (such as the mouse's TrackballControls)
 	// event.preventDefault();
@@ -375,4 +624,22 @@ function onDocumentMouseDown( event )
 		intersects[ 0 ].face.color.setRGB( 0.8 * Math.random() + 0.2, 0, 0 ); 
 		intersects[ 0 ].object.geometry.colorsNeedUpdate = true;
 	}
+}
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+}
+document.onmousemove = function(event){
+	//event.preventDefault();
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+ // Make the sphere follow the mouse
+	var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+	vector.unproject( camera );
+	var dir = vector.sub( camera.position ).normalize();
+	var distance = - camera.position.z / dir.z;
+	var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+	hand.position.copy(pos);
 }
