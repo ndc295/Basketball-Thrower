@@ -11,7 +11,7 @@ var dayTime=0;
 var nightTime=0;
 var hasFallen=[];
 var isGrabbed=[];
-			var mouse = new THREE.Vector2(), INTERSECTED;
+var mouse = new THREE.Vector2(), INTERSECTED;
 var message1= "Timer: 60";
 var message2= "Score: 0";
 var message3= "High Score: 0";
@@ -55,7 +55,7 @@ function init(){
 
 	animate();
 }
-function setTitle1(){
+function setTitle1(){	//sets title object in scene for the game name
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry(tm1, {
@@ -73,7 +73,7 @@ function setTitle1(){
 		scene.add(title1);
 	});
 }
-function setTitle2(){
+function setTitle2(){	//sets caption object in scene for title telling player what to do
 
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
@@ -92,7 +92,7 @@ function setTitle2(){
 		scene.add(title2);
 	});
 }
-function setTimer( ){
+function setTimer( ){	//sets timer object in the scene
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry(message1, {
@@ -110,7 +110,7 @@ function setTimer( ){
 		scene.add(textGeo1);
 	});
 }
-function setScore( ){ 
+function setScore( ){ 	//sets score object in the scene 
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry(message2, {
@@ -127,7 +127,7 @@ function setScore( ){
 		scene.add(textGeo2);
 	});
  }
-function setHighScore( ){ 
+function setHighScore( ){ //sets high score object in the scene
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry(message3, {
@@ -145,7 +145,7 @@ function setHighScore( ){
 		scene.add(textGeo3);
 	});
 }
-function setStart(){
+function setStart(){	//creates start button object in scene
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry("Start", {
@@ -163,7 +163,7 @@ function setStart(){
 		scene.add(startt);
 	});
 }
-function setReset(){
+function setReset(){	//creates reset button object in scene
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry("Reset", {
@@ -181,7 +181,7 @@ function setReset(){
 		scene.add(resett);
 	});
 }
-function createScene(){
+function createScene(){	//creates scene by placing all of the objects 
 	/////////////
 	//HAND DATA//
 	////////////
@@ -596,7 +596,7 @@ function createScene(){
 	rMenu.push(resetb);
 
 }
-function addLights(){
+function addLights(){	//adds lighting to scene
 	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);	//do not change color .2-.4 is best
 	scene.add(ambientLight);
 	
@@ -612,7 +612,7 @@ function addLights(){
 	directionalLight.shadowCameraBottom   = -500;
 	scene.add(directionalLight);
 }
-function setCamera(){
+function setCamera(){	//creates perspective for the camera
 	camera.position.set(0, 175, -220);
 	//camera.position.set(15, 15, -5);
 	var position = new THREE.Vector3(0,200,490);
@@ -621,7 +621,7 @@ function setCamera(){
 	//controls = new THREE.OrbitControls(camera, renderer.domElement);
 
 }
-function setCanvas(){
+function setCanvas(){	//creates the renderer
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.setPixelRatio( window.devicePixelRatio );
@@ -630,7 +630,7 @@ function setCanvas(){
 	document.body.appendChild(renderer.domElement);
 	
 }
-function animate() {
+function animate() {	//animation loop, also deals with physics
   requestAnimationFrame( animate );
   
   	for(var i=0;i<objects.length;i++){	//determine the bounce
@@ -651,11 +651,11 @@ function animate() {
 
   render();
 }
-function render() {
+function render() {	//renders scene
   renderer.render( scene, camera );
 
 }
-function startClock() {
+function startClock() {	//starts the game + timer
  	document.body.style.cursor = "none";
 	scene.remove(title1);
 	scene.remove(title2);
@@ -682,7 +682,7 @@ function startClock() {
 
     }
 }
-function stopWatch() {
+function stopWatch() {	//the timer loop
     sec--;
 	
 	if(sec>30){ //start at .3, go to .5 by 30 seconds, then go back down to .2
@@ -716,7 +716,7 @@ function stopWatch() {
 	scene.remove(textGeo1);
 	setTimer();
 }
-function stopClock() {
+function stopClock() {	//stops the game + timer
 	document.body.style.cursor = "default";
     window.clearInterval(clock);
     sec = 60;
@@ -732,7 +732,7 @@ function stopClock() {
 	setTimer();
     clicked = false;
 }
-function onWindowResize() {
+function onWindowResize() {	//function to handle resizing window
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -742,7 +742,7 @@ document.onmousemove = function(event){
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
- // Make the sphere follow the mouse
+ // Make the hand follow the mouse
 	var vector = new THREE.Vector3(mouse.x, mouse.y, .5);
 	vector.unproject( camera );
 	var dir = vector.sub( camera.position ).normalize();
