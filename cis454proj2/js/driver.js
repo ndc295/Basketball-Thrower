@@ -2,7 +2,7 @@ var scene, camera, renderer,loader;
 var floor, ambientLight, directionalLight;
 var hand,fingers,ball1,ball3,ball3,pole,backboard,hoop,sky1,sky2,fence1,fence2,brick,startt,resett,startb,resetb;
 var texture,material,geometry;
-var clicked = false;
+var clicked = false;	//this goes to the Timer function
 var sec = 60;
 var scored=false;
 var playerScore=0;
@@ -20,11 +20,26 @@ var tm2="Click to throw the basketballs to score points before the time runs out
 var textGeo1,textGeo2,textGeo3,title1,title2;
 var raycaster,intersects,intersection;
 var objects = [];
+var thrown = [];
 var sMenu = [];
 var rMenu = [];
-var clicked1=false;
+var ballGrabber=false;		//this goes to the ball throwing functions
 var pos,obj;
 var lastHighest=[];
+var xThrow, yThrow,zThrow;
+var throwBall=false;
+var counter=0;
+/*	Created by Noah Casey
+	This version was refactored to only include 1 ball to satisfy the project 4 due date.
+
+	Commented out is the old, unfinished implementation of multiple balls. It turned out to be too time-consuming to create a queue system that checked values such as
+	1. path 2. isTravelling, 3. isGrabbed, 4. time before respawning 5. out of bounds checking 6. physics checking
+	
+	Raycasting is used for the mouse-object detection, but object-object doesnt have collision detection, it is just an estimation because the library creator changed 
+	the implementation and there wasn't time to research the new method without many examples to look at
+
+*/
+
 function init(){
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight, 10, 1000);
@@ -55,7 +70,7 @@ function init(){
 
 	animate();
 }
-function setTitle1(){	//sets title object in scene for the game name
+function setTitle1(){	//sets title object in scene for the game name, also used to tell the played they scored
 	var loader = new THREE.FontLoader();
 	loader.load('fonts/helvetiker_regular.typeface.json', function (font){
 		var text = new THREE.TextGeometry(tm1, {
@@ -360,7 +375,7 @@ function createScene(){	//creates scene by placing all of the objects
 	ball1.position.y += 15;
 	ball1.position.x += 0;
 	scene.add(ball1);
-
+/*
 	ball2 = new THREE.Mesh( geometry, material );
 	ball2.receiveShadow = true;
 	ball2.castShadow = true;
@@ -390,7 +405,7 @@ function createScene(){	//creates scene by placing all of the objects
 	ball5.position.x += -75;
 	ball5.position.z += 10;
 	scene.add(ball5);
-
+*/
 	////////////////
 	//HOOP POLE DATA///
 	//////////////
@@ -439,12 +454,12 @@ function createScene(){	//creates scene by placing all of the objects
 	////////////////
 	//HITBOX DATA///
 	//////////////
-	
+/*	
 	///SCORING HITBOXES//////
 	geometry = new 	THREE.BoxGeometry( 15, 1,15 )
 	hitbox1 = new THREE.Mesh( geometry );
 	hitbox1.material.color.setHex( 0xffffff  );
-	hitbox1.position.y += 375;
+	hitbox1.position.y += 370;
 	hitbox1.position.x += 0;
 	hitbox1.position.z += 375;
 	scene.add(hitbox1);
@@ -456,7 +471,7 @@ function createScene(){	//creates scene by placing all of the objects
 	hitbox2.position.x += 0;
 	hitbox2.position.z += 375;
 	scene.add(hitbox2);
-	
+*/
 	////////////////
 	//FLOOR DATA///
 	//////////////	
@@ -586,11 +601,13 @@ function createScene(){	//creates scene by placing all of the objects
 	resetb.receiveShadow = false;
 	resetb.castShadow = false;
 	scene.add(resetb);
-	objects.push( ball1,ball2,ball3,ball4,ball5 );
+	//objects.push( ball1,ball2,ball3,ball4,ball5 );
+	objects.push(ball1); //unused
   	for(var i=0;i<objects.length;i++){
-		hasFallen[i]=true;
+		hasFallen[i]=false;
 		isGrabbed[i]=false;
-		lastHighest[i]=objects[i].position.y;
+		//lastHighest[i]=objects[i].position.y;
+		lastHighest[i]=ball1.position.y;
 	}
 	sMenu.push(startb);
 	rMenu.push(resetb);
@@ -630,32 +647,190 @@ function setCanvas(){	//creates the renderer
 	document.body.appendChild(renderer.domElement);
 	
 }
-function animate() {	//animation loop, also deals with physics
+function animate() {	//animation loop, also deals with physics and scoring
   requestAnimationFrame( animate );
-  
-  	for(var i=0;i<objects.length;i++){	//determine the bounce
-		if(objects[i].position.y>15){
-			if(hasFallen[i]<objects[i].position.y){
-				lastHighest[i]=objects[i].position.y;
- 			}
+	
+	if(ballGrabber){	//determine bouncing
+		lastHighest[0]=ball1.position.y;
+	}else if(!hasFallen[0]==true){	//bounce down
+			
+		if(ball1.position.y>15){
+				ball1.position.y-=15;
+			}else{
+				hasFallen[0]=true;
+			}
+			
+	}else if(hasFallen[0]==true){	//bounce up
+		if(ball1.position.y<=lastHighest[0]*.80){
+			ball1.position.y+=15;
+		}else{
+			lastHighest[0]=lastHighest[0]*.80;
+			hasFallen[0]=false;
 		}
-	}
-  	for(var i=0;i<objects.length;i++){	//determine whether or not to bounce
-		if(objects[i].position.y>15){
-			objects[i].position.y-=5;
-		}else if(objects[i].position.y<=15){
-			objects[i].position.y+=5;
-  		}
+	} 
+	if(lastHighest[0]<=31){
+		lastHighest[0]=15;
+		ball1.position.y=15;
+		
 	}
 	
+	if(ball1.position.x>250||ball1.position.x<-250||ball1.position.y<0||ball1.position.z<-5||ball1.position.z>500&&!ballGrabber){	//fixes out of bound balls
+		ball1.position.x=0;
+		ball1.position.y=15;
+		ball1.position.z=0;
+	}
+	if(throwBall){		//throw the ball
+		if(counter<55){	//this is to prevent the ball from instantly respawning
+			if(counter<9){	//this moves the ball
+				if(ball1.position.x<35||ball1.position.x>-35){
+					if(zThrow>375){
+						zThrow=374;
+					}
+				}
+					ball1.position.x+=xThrow/9;
+					ball1.position.y+=yThrow/9;
+					ball1.position.z+=zThrow/9;
+				if(clicked){
+					if(sec>0){
+						if(ball1.position.x<9&&ball1.position.x>-9&&ball1.position.z>370&&ball1.position.z<384&&ball1.position.y>=370){
+								scored=true;
+								if(scored==true){
+									playerScore+=3;
+									message2="Score: "+playerScore;
+									scene.remove(textGeo2);
+									setScore();
+									tm1="Score!!";
+									setTitle1();	
+									scored=false;
+									
+								}
+						}
+					}
+				}
+			}
+			counter++;
 
+		}else{
+			throwBall=false;
+			counter=0;
+			ball1.position.x=0;
+			ball1.position.z=0;
+			lastHighest[0]=ball1.position.y;
+ 		}
+			
+	}
+	
+/*	//unused, part of the older attempt at multiple-balls
+	determineRebound;	//determine the bounce height
+	bounce();	//determine whether or not to bounce
+	ballReposition();	//determine if the ball is hitting other balls and reposition
+	respawnBall();	//reset out of bound balls
+	tossBall();	//determine when/where to throw the ball 
+*/
   render();
 }
+/*	//Unused, part of the older attempt at multiple balls
+function determineRebound(){	//determine the bounce
+  	for(var i=0;i<objects.length;i++){	
+		if(objects[i].position.y>15&&lastHighest[i]<objects[i].position.y){	
+			lastHighest[i]=objects[i].position.y;
+		}
+	}
+}
+function bounce(){	//determine whether or not to bounce
+  	for(var i=0;i<objects.length;i++){	
+		if(pos.x===objects[i].position.x){	//prevent ball from falling if grabbed
+			lastHighest[i]=objects[i].position.y;
+ 			if(!throwBall){
+				z=i;
+			}
+		}
+		if(i==z&&throwBall){
+			continue;
+		
+		}else if(!hasFallen[i]==true ){
+			
+			if(objects[i].position.y>15){
+				objects[i].position.y-=5;
+			}else{
+				hasFallen[i]=true;
+			}
+			
+		}else if(hasFallen[i]==true ){
+			if(objects[i].position.y<=lastHighest[i]*.65){
+				objects[i].position.y+=5;
+			}else{
+				lastHighest[i]=lastHighest[i]*.65;
+				hasFallen[i]=false;
+			}
+		} 		
+ 		if(lastHighest[i]<=24){
+			lastHighest[i]=15;
+		}
+	}
+}
+function ballReposition(){	//determine if the ball is hitting other balls and reposition
+	for(var i=0;i<objects.length-1;i++){	
+		if(i==z&&throwBall){
+			continue;
+		}
+	}
+	for(var j=i+1;j<objects.length;j++){
+		if(j==z&&throwBall){
+			continue;
+		}
+		if(objects[i].position.x-objects[j].position.x<25&&objects[i].position.x-objects[j].position.x>-25&&objects[i].position.y-objects[j].position.y<25&&objects[i].position.y-objects[j].position.y>-25){
+			if(objects[i].position.x>objects[j].position.x){
+				objects[i].position.x+=8;
+				objects[j].position.x-=8;
+			}else{
+				objects[i].position.x-=8;
+				objects[j].position.x+=8;
+			}
+		}
+	}
+}
+function respawnBall(){	//reset out of bound balls
+	for(var i=0;i<objects.length;i++){		
+		if(i==z){
+			continue;
+		}
+		if(pos.x===objects[i].position.x){
+			
+		}else if(objects[i].position.x>250||objects[i].position.x<-250){
+			objects[i].position.x=0;
+		}
+	}
+}
+function tossBall(){	//determine when/where to throw the ball 
+	if(throwBall){	
+		if(counter<70){	//this is to prevent the ball from instantly respawning
+			if(counter<16){	//this moves the ball
+				objects[z].position.x+=xThrow/14;
+				objects[z].position.y+=yThrow/14;
+				objects[z].position.z+=375/14;
+							
+
+			}else{
+				throwBall=false;
+			}
+			counter++;
+			
+		}else{	//respawn the ball
+			counter=0;
+			objects[z].position.x=0;
+			objects[z].position.y=40;
+			objects[z].position.z=0;
+			z=-1;
+		}
+	}	
+}
+*/
 function render() {	//renders scene
   renderer.render( scene, camera );
 
 }
-function startClock() {	//starts the game + timer
+function startClock() {	//starts the game + timer and adjusts the lighting to base values
  	document.body.style.cursor = "none";
 	scene.remove(title1);
 	scene.remove(title2);
@@ -666,7 +841,7 @@ function startClock() {	//starts the game + timer
 		nightTime=0;
 		sec=60;
 		directionalLight.position.set(490,490,0);
-		ambientLight.intensity=.2;
+		ambientLight.intensity=.3;
 		message1="Timer: "+sec;
 		scene.remove(textGeo1);
 		setTimer();
@@ -682,7 +857,7 @@ function startClock() {	//starts the game + timer
 
     }
 }
-function stopWatch() {	//the timer loop
+function stopWatch() {	//the timer loop, controls lighting and the Score!! message
     sec--;
 	
 	if(sec>30){ //start at .3, go to .5 by 30 seconds, then go back down to .2
@@ -696,15 +871,7 @@ function stopWatch() {	//the timer loop
 		directionalLight.position.set((0-16.33*nightTime),(700-7*nightTime),(249-8.3*nightTime));
 
 	}
-	if(sec>0){
-		if(scored==true){
-			playerScore++;
-			message2="Score: "+playerScore;
-			scene.remove(textGeo2);
-			setScore();
-			scored=false;
-		}
-	}	
+	scene.remove(title1);
 	if(sec==0){
 		ambientLight.intensity=0;
 		directionalLight.intensity= .3;
@@ -716,10 +883,9 @@ function stopWatch() {	//the timer loop
 	scene.remove(textGeo1);
 	setTimer();
 }
-function stopClock() {	//stops the game + timer
+function stopClock() {	//stops the game + timer, checks for high score
 	document.body.style.cursor = "default";
     window.clearInterval(clock);
-    sec = 60;
 	if(playerScore>highScore){
 		highScore=playerScore;
 		message3="High Score: "+highScore;
@@ -727,17 +893,19 @@ function stopClock() {	//stops the game + timer
 		setHighScore();
 	}
 
-	scene.remove(textGeo1);
-	message1="Timer: "+sec
-	setTimer();
     clicked = false;
+}
+function generateRandomNumber(min , max) {	//random number generator
+    
+   let random_number = Math.random() * (max-min) + min;
+    return Math.floor(random_number);
 }
 function onWindowResize() {	//function to handle resizing window
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize( window.innerWidth, window.innerHeight );
 }
-document.onmousemove = function(event){
+document.onmousemove = function(event){	//updates to make the ball follow the hand, which follows the mouse
 	//event.preventDefault();
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
@@ -749,27 +917,29 @@ document.onmousemove = function(event){
 	var distance = - camera.position.z / dir.z;
 	pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
 	hand.position.copy(pos);
-	hand.position.z-=25;
-	hand.position.y-=20;
+	hand.position.z-=35;
+	hand.position.y-=15;
 	
-	if(clicked1){
+	if(ballGrabber){
  		obj.position.copy(pos);
-
 	}
 
 }
 
-function onDocumentMouseDown( e ) {	//make the clicked1 var switch ON if it clicks a relevant object
+function onDocumentMouseDown( e ) {	//make the ballGrabber var switch ON if it clicks a relevant object, also controls start, reset buttons
 	e.preventDefault();
- 	  
-	if(clicked1){
-		clicked1=false;
+ 	if(ballGrabber){
+		ballGrabber=false;
+		xThrow=generateRandomNumber(0-9,0+9);
+		yThrow=generateRandomNumber(375-7,375+25);
+		zThrow=generateRandomNumber(375-7,375+125);
+		throwBall=true;
 	}else{
 		raycaster.setFromCamera( mouse, camera );  
 		intersects = raycaster.intersectObjects( objects );
 		if(intersects.length>0){
-			clicked1=true;
- 			obj=intersects[ 0 ].object;
+			ballGrabber=true;
+ 			obj=intersects[0].object;
 			obj.position.copy(pos);
 		}
 
